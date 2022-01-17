@@ -1,0 +1,4 @@
+openpyxl==3.0.9
+selenium==4.1.0
+
+PyPDF4~=1.27.0
