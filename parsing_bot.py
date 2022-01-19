@@ -10,10 +10,12 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
+from main import output_folder
+
 chrome_driver_path = "driver/chromedriver"
 
 
-def set_up():
+def set_up(dir: str):
     # function to take care of downloading file
     def enable_download_headless(driver, download_dir):
         driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
@@ -45,7 +47,8 @@ def set_up():
     driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=chrome_driver_path)
 
     # change the <path_to_place_downloaded_file> to your directory where you would like to place the downloaded file
-    download_dir = "output"
+    # download_dir = "output"
+    download_dir = dir
 
     # function to handle setting up headless download
     enable_download_headless(driver, download_dir)
@@ -187,20 +190,21 @@ def scrap_table(driver, rows_xpath: str, cols_xpath: str) -> Tuple[List[List[Any
         print(f'{e}')
 
 
-def latest_download_file(path="output"):
+def latest_download_file(path=output_folder):
     """
     Get the last modified file in the folder
     :param path: path to folder
     :return: name of file
     """
     try:
-        if os.getcwd() != path:
-            os.chdir(path)
+        os.chdir(path)
         files = sorted(os.listdir(os.getcwd()), key=os.path.getmtime)
         newest = files[-1]
         return newest
     except Exception as e:
         print(e)
+    finally:
+        os.chdir('..')
 
 
 def download_file(driver, links: list, list_for_check: list) -> None:
@@ -242,9 +246,10 @@ def download_file(driver, links: list, list_for_check: list) -> None:
         print(e)
 
 
-def get_data_from_file(file: str, num_page: int) -> Dict[str, Any]:
+def get_data_from_file(file: str, num_page: int, path=output_folder) -> Dict[str, Any]:
     """
     Get some data from file
+    :param path: default "output"
     :param num_page: number of page (start from 0)
     :param file: file name
     :return: list of dictionary with some data from files
@@ -255,6 +260,7 @@ def get_data_from_file(file: str, num_page: int) -> Dict[str, Any]:
     # cur_path = os.path.dirname(__file__)
     # new_path = os.path.relpath(file, cur_path)
     try:
+        os.chdir(path)
         file_obj = open(file, 'rb')
         file_reader = PyPDF4.PdfFileReader(file_obj)
         page = file_reader.getPage(num_page)
@@ -267,6 +273,8 @@ def get_data_from_file(file: str, num_page: int) -> Dict[str, Any]:
         return file_dict
     except Exception as e:
         print(e)
+    finally:
+        os.chdir('..')
 
 
 def compare_data(data_1: dict, data_2: list) -> bool:
@@ -293,14 +301,16 @@ def compare_data(data_1: dict, data_2: list) -> bool:
         print(e)
 
 
-def save_to_xlsx(data: list, file_name: str, sheet_name: str) -> None:
+def save_to_xlsx(data: list, file_name: str, sheet_name: str, path=output_folder) -> None:
     """
     Save data to file xlsx
-    :param data:
-    :param file_name: file name
-    :param sheet_name: sheet name
+    :param path: path to dir
+    :param data: data to write to a file
+    :param file_name: a file name
+    :param sheet_name: a sheet name
     :return:
     """
+    os.chdir(path)
     print('Recording to file started.')
     try:
         if os.path.exists(file_name):
@@ -322,3 +332,5 @@ def save_to_xlsx(data: list, file_name: str, sheet_name: str) -> None:
         print('Recording to file finished.')
     except Exception as e:
         print(e)
+    finally:
+        os.chdir('..')
