@@ -1,0 +1,30 @@
+The bot started working.
+Found 26 agencies.
+Found 26 amounts
+Got a list of agencies and the amount.
+Recording to file started.
+Recording to file finished.
+Found National Science Foundation.
+National Science Foundation: https://itdashboard.gov/drupal/summary/422
+Agency page opened.
+Started scraping the table.
+Select "All" selected.
+Waiting for the table to load...
+Found 22 lines.
+Found 7 columns
+Added link to list: https://itdashboard.gov/drupal/summary/422/422-000000004
+Added link to list: https://itdashboard.gov/drupal/summary/422/422-000001327
+Added link to list: https://itdashboard.gov/drupal/summary/422/422-000001328
+Scraping the table finished.
+Recording to file started.
+Recording to file finished.
+['https://itdashboard.gov/drupal/summary/422/422-000000004', 'https://itdashboard.gov/drupal/summary/422/422-000001327', 'https://itdashboard.gov/drupal/summary/422/422-000001328']
+Start downloading files.
+File 422-000000004 (5).pdf downloaded successfully.
+Link and download have been matched.
+File 422-000001327 (5).pdf downloaded successfully.
+Link and download have been matched.
+File 422-000001328 (2).pdf downloaded successfully.
+Link and download have been matched.
+File downloads complete.
+The bot is finished.
