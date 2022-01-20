@@ -6,19 +6,25 @@ import PyPDF4
 from RPA.Browser.Selenium import Selenium
 from RPA.Excel.Files import Files
 from RPA.Tables import Tables
-
 from selenium.webdriver.support.select import Select
-
-browser_lib = Selenium()
-output_folder = os.getcwd() + '/output'
-browser_lib.set_download_directory(output_folder)
 
 excel = Files()
 tables = Tables()
+output_folder = os.getcwd() + '/output'
 
 
-def open_the_website(url):
-    browser_lib.open_available_browser(url)
+def create_browser():
+    browser = Selenium()
+    browser.set_download_directory(output_folder)
+    browser.open_available_browser(maximized=True)
+    return browser
+
+
+browser_lib = create_browser()
+
+
+def open_the_webpage(url):
+    browser_lib.go_to(url)
 
 
 def get_departments_amounts(dep_xpath: str, amo_xpath: str) -> list:
@@ -101,7 +107,7 @@ def open_agency_page(agency_name: str, xpath: str) -> None:
                 print(f'Found {agency_name}.')
                 link = agency.get_attribute('href')
                 print(f'{agency_name}: {link}')
-                open_the_website(link)
+                open_the_webpage(link)
                 print('Agency page opened.')
                 break
     except Exception as e:
@@ -213,7 +219,7 @@ def download_file(links: list, list_for_check: list) -> None:
         if len(links) > 0:
             print('Start downloading files.')
             for link in links:
-                open_the_website(link)
+                open_the_webpage(link)
                 download_xpath = '//*[@id="business-case-pdf"]/a'
                 time.sleep(3)
                 try:

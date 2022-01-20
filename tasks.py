@@ -16,7 +16,7 @@ sheet_name = 'Agencies'
 def main():
     try:
         print('The bot started working.')
-        open_the_website(url)
+        open_the_webpage(url)
         browser_lib.click_button(browser_lib.find_element(button_xpath))
         save_to_xlsx(get_departments_amounts(departments_xpath, amounts_xpath), file_name, sheet_name)
         open_agency_page(selected_agency, agency_blocks_xpath)
