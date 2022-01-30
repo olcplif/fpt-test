@@ -1,3 +1,5 @@
+driver/
+renv/
 venv/
 temp/
 .rpa/

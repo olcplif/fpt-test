@@ -7,24 +7,36 @@ Recording to file finished.
 Found National Science Foundation.
 National Science Foundation: https://itdashboard.gov/drupal/summary/422
 Agency page opened.
+Waiting for the table to load...
 Started scraping the table.
 Select "All" selected.
-Waiting for the table to load...
-Found 22 lines.
-Found 7 columns
-Added link to list: https://itdashboard.gov/drupal/summary/422/422-000000004
-Added link to list: https://itdashboard.gov/drupal/summary/422/422-000001327
-Added link to list: https://itdashboard.gov/drupal/summary/422/422-000001328
-Scraping the table finished.
+Waiting for the entire table to load...
 Recording to file started.
 Recording to file finished.
-['https://itdashboard.gov/drupal/summary/422/422-000000004', 'https://itdashboard.gov/drupal/summary/422/422-000001327', 'https://itdashboard.gov/drupal/summary/422/422-000001328']
-Start downloading files.
-File 422-000000004 (5).pdf downloaded successfully.
+Found 3 links.
+Found link: https://itdashboard.gov/drupal/summary/422/422-000000004
+Starting to download the file.
+Waiting for downloads.............done!
+File 422-000000004 (2).pdf downloaded successfully.
+Retrieving data from the downloaded file.
+Retrieving data from the downloaded file completed.
+Starting to compare data.
 Link and download have been matched.
-File 422-000001327 (5).pdf downloaded successfully.
+Found link: https://itdashboard.gov/drupal/summary/422/422-000001327
+Starting to download the file.
+Waiting for downloads.................done!
+File 422-000001327 (2).pdf downloaded successfully.
+Retrieving data from the downloaded file.
+Retrieving data from the downloaded file completed.
+Starting to compare data.
 Link and download have been matched.
+Found link: https://itdashboard.gov/drupal/summary/422/422-000001328
+Starting to download the file.
+Waiting for downloads....................done!
 File 422-000001328 (2).pdf downloaded successfully.
+Retrieving data from the downloaded file.
+Retrieving data from the downloaded file completed.
+Starting to compare data.
 Link and download have been matched.
-File downloads complete.
+Scraping the table finished.
 The bot is finished.
