@@ -13,7 +13,6 @@ dive_in_button_xpath = '//*[@id="node-23"]//a[@class="btn btn-default btn-lg-2x 
 selected_agency = 'National Science Foundation'
 agency_blocks_xpath = '//*[@id="agency-tiles-widget"]//a'
 row_xpath = '//*[@id="investments-table-object"]/tbody/tr[*]'
-# col_xpath = '//*[@id="investments-table-object"]/tbody/tr[1]/td'
 file_name = 'it-dashboards.xlsx'
 sheet_name = 'Agencies'
 
