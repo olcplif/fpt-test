@@ -41,23 +41,6 @@ def open_the_webpage(url):
     browser_lib.go_to(url)
 
 
-def wait_until_load_element(xpath: str, driver=browser_lib, timeout: int = 300) -> None:
-    """
-    Waiting for the item to load on the page
-    :param xpath: xpath to the element
-    :param driver: browser
-    :param timeout: waiting time
-    :return: None
-    """
-    while timeout > 0:
-        try:
-            return driver.find_element(xpath)
-        except:  # if element isn't already loaded or doesn't exist
-            time.sleep(0.5)
-            timeout -= 1
-    raise RuntimeError(f"Element loading timeout")
-
-
 def get_departments_amounts(dep_xpath: str, amo_xpath: str) -> list:
     """
     Scrapping spend amounts for each agency from a page.
@@ -143,33 +126,6 @@ def scrap_table(agency_name: str, rows_xpath: str) -> DataFrame:
         tables_frame = pd.read_html(browser_lib.find_element(table_xpath).get_attribute('outerHTML'))
         table = tables_frame[0]
         print('Scraping the table finished.')
-        # save_to_xlsx(table, file, agency_name)
-        # rows = len(browser_lib.find_elements(rows_xpath))
-        # tags_a = len(browser_lib.find_elements('//*[@id="investments-table-object"]//a'))
-        # print(f'Found {tags_a} links.')
-        #
-        # processed_tag_a = 0
-        #
-        # for row in range(1, rows + 1):  # processing links
-        #     if processed_tag_a < tags_a:
-        #         dict_for_check = {}
-        #         try:
-        #             a_xpath = '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[1]/a'
-        #             tag_a = browser_lib.find_element(a_xpath)
-        #             link = tag_a.get_attribute('href')
-        #             print(f'Found link: {link}')
-        #             uii_for_check = tag_a.text
-        #             investment_title = browser_lib.find_element(
-        #                 '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[3]').text
-        #             dict_for_check['investment'] = investment_title
-        #             dict_for_check['uii'] = uii_for_check
-        #             download_file(link, dict_for_check)
-        #         except:
-        #             continue
-        #         finally:
-        #             processed_tag_a += 1
-        #     else:
-        #         break
         return table
     except Exception as e:
         print(f'{e}')
