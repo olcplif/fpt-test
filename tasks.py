@@ -22,14 +22,6 @@ sheet_name = 'Agencies'
 
 def main():
     try:
-        # orig start
-        # print('The bot started working.')
-        # open_the_webpage(url)
-        # browser_lib.click_button(browser_lib.find_element(dive_in_button_xpath))
-        # save_to_xlsx(get_departments_amounts(departments_xpath, amounts_xpath), file_name, sheet_name)
-        # scrap_table(file_name, selected_agency, row_xpath)
-        # orig finish
-
         print('The bot started working.')
         open_the_webpage(url)
         browser_lib.click_button(browser_lib.find_element(dive_in_button_xpath))

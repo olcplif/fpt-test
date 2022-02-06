@@ -1,6 +1,5 @@
 import os
 import shutil
-import time
 from datetime import timedelta
 from typing import Any, Dict
 
@@ -152,7 +151,8 @@ def find_links(rows_xpath: str) -> list:
                 link = tag_a.get_attribute('href')
                 print(f'Found link: {link}')
                 uii_for_check = tag_a.text
-                investment_title = browser_lib.find_element('//*[@id="investments-table-object"]/tbody/tr[' + str(i) + ']/td[3]').text
+                investment_title = browser_lib.find_element(
+                    '//*[@id="investments-table-object"]/tbody/tr[' + str(i) + ']/td[3]').text
                 dict_for_check['investment'] = investment_title
                 dict_for_check['uii'] = uii_for_check
                 link_and_data_for_check.append(link)
@@ -172,25 +172,18 @@ def wait_download_file(path: str = tmp_output_folder) -> str:
     """
     try:
         os.chdir(path)
-        print("Waiting for downloads", end="")
-        while len(os.listdir(os.getcwd())) == 0:  # waiting for a new file in the folder
-            time.sleep(0.5)
-            print(".", end="")
-        file_end = "crdownload"
-        while "crdownload" == file_end:  # waiting for the file to load completely
-            time.sleep(0.5)
-            newest_file = sorted(os.listdir(os.getcwd()), key=os.path.getmtime)[-1]
-            print(".", end="")
-            if "crdownload" in newest_file:
-                file_end = "crdownload"
-            else:
-                file_end = "none"
-        print("done!")
-        shutil.copy2(f"{tmp_output_folder}/{newest_file}", f"{output_folder}/{newest_file}")
-        os.remove(f'{tmp_output_folder}/{newest_file}')
+        print("Waiting for download file...")
+        flag = True
+        while flag:
+            for file in os.listdir(os.getcwd()):
+                if file.endswith(".pdf"):
+                    downloaded_file = file
+                    flag = False
+        shutil.copy2(f"{tmp_output_folder}/{downloaded_file}", f"{output_folder}/{downloaded_file}")
+        os.remove(f'{tmp_output_folder}/{downloaded_file}')
         os.chdir('..')
         os.rmdir(tmp_output_folder)
-        return newest_file
+        return downloaded_file
     except Exception as e:
         print(e)
 
