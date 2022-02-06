@@ -180,12 +180,12 @@ def wait_download_file(path: str = tmp_output_folder) -> str:
                     downloaded_file = file
                     flag = False
         shutil.copy2(f"{tmp_output_folder}/{downloaded_file}", f"{output_folder}/{downloaded_file}")
-        os.remove(f'{tmp_output_folder}/{downloaded_file}')
-        os.chdir('..')
-        os.rmdir(tmp_output_folder)
         return downloaded_file
     except Exception as e:
         print(e)
+    finally:
+        os.chdir('..')
+        shutil.rmtree(tmp_output_folder)
 
 
 def download_file(link: str) -> str:
