@@ -1,8 +1,9 @@
 import os
+import shutil
 import time
+from datetime import timedelta
 from typing import Any, Dict
 
-import openpyxl
 import pandas as pd
 from RPA.Browser.Selenium import Selenium
 from RPA.Excel.Files import Files
@@ -17,7 +18,9 @@ string = String()
 
 excel = Files()
 tables = Tables()
-output_folder = os.getcwd() + '/output'
+work_folder = os.getcwd()
+output_folder = f'{work_folder}/output'
+tmp_output_folder = f'{work_folder}/tmp'
 
 
 def create_browser():
@@ -26,7 +29,7 @@ def create_browser():
     :return: browser
     """
     browser = Selenium()
-    browser.set_download_directory(output_folder)
+    browser.set_download_directory(tmp_output_folder)
     browser.open_available_browser(maximized=True)
     return browser
 
@@ -65,7 +68,7 @@ def get_departments_amounts(dep_xpath: str, amo_xpath: str) -> list:
     rows_list = []
     try:
         element_for_check = '//*[@id="agency-tiles-widget"]//span[@class=" h1 w900"]'
-        wait_until_load_element(element_for_check)
+        browser_lib.wait_until_page_contains_element(element_for_check)
         departments = browser_lib.find_elements(dep_xpath)
         amounts = browser_lib.find_elements(amo_xpath)
         print(f'Found {len(departments)} agencies.')
@@ -91,16 +94,14 @@ def save_to_xlsx(data, file_name: str, sheet_name: str, path=output_folder):
     try:
         os.chdir(path)
         data_frame = pd.DataFrame(data)
+        mode = "w"
         if os.path.exists(file_name):  # Check whether the existing file
-            workbook = openpyxl.load_workbook(file_name)
-            writer = pd.ExcelWriter(file_name, engine='openpyxl', mode='w')
-            writer.book = workbook
-            writer.sheets = dict((ws.title, ws) for ws in workbook.worksheets)
-        else:
-            writer = pd.ExcelWriter(file_name, engine='openpyxl')
-        data_frame.to_excel(writer, sheet_name=sheet_name)
-        writer.save()
-        writer.close()
+            workbook = pd.ExcelFile(file_name)
+            sheets_list = workbook.sheet_names
+            if sheet_name not in sheets_list:  # Check whether the existing sheet
+                mode = "a"
+        with pd.ExcelWriter(file_name, mode=mode) as writer:
+            data_frame.to_excel(writer, sheet_name=sheet_name)
         print('Recording to file finished.')
     except Exception as e:
         print(e)
@@ -108,99 +109,106 @@ def save_to_xlsx(data, file_name: str, sheet_name: str, path=output_folder):
         os.chdir('..')
 
 
-def scrap_table(file: str, agency_name: str, agency_xpath: str, rows_xpath: str) -> DataFrame:
+def scrap_table(agency_name: str, rows_xpath: str) -> DataFrame:
     """
     Scraping html-table and converting it to DataFrame.
-    :param file: file's name
     :param agency_name: agency's name for scrapping
-    :param agency_xpath: xpath agency's block
     :param rows_xpath: xpath to agency's table
     :return: DataFrame from html-table
     """
     show_select_xpath = '//*[@id="investments-table-object_length"]/label/select'
     try:
-        agencies = browser_lib.find_elements(agency_xpath)
-        for agency in agencies:
-            if agency_name in agency.text:
-                print(f'Found {agency_name}.')
-                link = agency.get_attribute('href')
-                print(f'{agency_name}: {link}')
-                open_the_webpage(link)
-                print('Agency page opened.')
-                break
+        agency = browser_lib.find_element(f'//*[@id="agency-tiles-widget"]//span[text()="{agency_name}"]//parent::a')
+        link = agency.get_attribute('href')
+        print(f'{agency_name}: {link}')
+        open_the_webpage(link)
+        print('Agency page opened.')
         print('Waiting for the table to load...')
-        while not browser_lib.is_element_visible(rows_xpath):
-            pass
-        else:
-            print('Started scraping the table.')
-            last_button_1 = browser_lib.find_element('//*[@id="investments-table-object_last"]')
-            select = Select(browser_lib.find_element(show_select_xpath))
-            select.select_by_visible_text('All')
-            print('Select "All" selected.')
-            print('Waiting for the entire table to load...')
+        browser_lib.wait_until_page_contains_element(rows_xpath, timedelta(seconds=20))
+        print('Started scraping the table.')
+        select = Select(browser_lib.find_element(show_select_xpath))
+        select.select_by_visible_text('All')
+        print('Select "All" selected.')
+        print('Waiting for the entire table to load...')
 
-            while True:  # Waiting for the entire table to load
-                try:
-                    last_button_1.get_attribute('data-dt-idx')
-                    continue
-                except Exception as e:
-                    break
+        last_button_1 = browser_lib.find_element('//*[@id="investments-table-object_last"]')
+        while True:  # Waiting for the entire table to load
+            try:
+                last_button_1.get_attribute('data-dt-idx')
+                continue
+            except Exception as e:
+                break
 
-            table_xpath = '//*[@id="investments-table-object"]'
-            tables_frame = pd.read_html(browser_lib.find_element(table_xpath).get_attribute('outerHTML'))
-            table = tables_frame[0]
-            print('Scraping the table finished.')
-
-            save_to_xlsx(table, file, agency_name)
-
-            rows = len(browser_lib.find_elements(rows_xpath))
-            tags_a = len(browser_lib.find_elements('//*[@id="investments-table-object"]//a'))
-            print(f'Found {tags_a} links.')
-            processed_tag_a = 0
-
-            for row in range(1, rows + 1):  # processing links
-                if processed_tag_a < tags_a:
-                    dict_for_check = {}
-                    try:
-                        a_xpath = '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[1]/a'
-                        tag_a = browser_lib.find_element(a_xpath)
-                        link = tag_a.get_attribute('href')
-                        print(f'Found link: {link}')
-                        uii_for_check = tag_a.text
-                        investment_title = browser_lib.find_element(
-                            '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[3]').text
-                        dict_for_check['investment'] = investment_title
-                        dict_for_check['uii'] = uii_for_check
-                        download_file(link, dict_for_check)
-                    except:
-                        continue
-                    finally:
-                        processed_tag_a += 1
-                else:
-                    break
+        table_xpath = '//*[@id="investments-table-object"]'
+        tables_frame = pd.read_html(browser_lib.find_element(table_xpath).get_attribute('outerHTML'))
+        table = tables_frame[0]
+        print('Scraping the table finished.')
+        # save_to_xlsx(table, file, agency_name)
+        # rows = len(browser_lib.find_elements(rows_xpath))
+        # tags_a = len(browser_lib.find_elements('//*[@id="investments-table-object"]//a'))
+        # print(f'Found {tags_a} links.')
+        #
+        # processed_tag_a = 0
+        #
+        # for row in range(1, rows + 1):  # processing links
+        #     if processed_tag_a < tags_a:
+        #         dict_for_check = {}
+        #         try:
+        #             a_xpath = '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[1]/a'
+        #             tag_a = browser_lib.find_element(a_xpath)
+        #             link = tag_a.get_attribute('href')
+        #             print(f'Found link: {link}')
+        #             uii_for_check = tag_a.text
+        #             investment_title = browser_lib.find_element(
+        #                 '//*[@id="investments-table-object"]/tbody/tr[' + str(row) + ']/td[3]').text
+        #             dict_for_check['investment'] = investment_title
+        #             dict_for_check['uii'] = uii_for_check
+        #             download_file(link, dict_for_check)
+        #         except:
+        #             continue
+        #         finally:
+        #             processed_tag_a += 1
+        #     else:
+        #         break
         return table
     except Exception as e:
         print(f'{e}')
 
 
-def latest_download_file(path: str = output_folder):
+def find_links(rows_xpath: str) -> list:
     """
-    Get the last modified file in the folder
-    :param path: path to folder
-    :return: name of file
+    Finds a links in the table at the specified xpath
+    :param rows_xpath: xpath to the link
+    :return: list of links and data for comparison
     """
+    rows = len(browser_lib.find_elements(rows_xpath))
+    num_tags_a = len(browser_lib.find_elements('//*[@id="investments-table-object"]//a'))
+    print(f'Found {num_tags_a} links.')
+    links_and_data_for_check_list = []
+    processed_tag_a = 0
     try:
-        os.chdir(path)
-        files = sorted(os.listdir(os.getcwd()), key=os.path.getmtime)
-        newest = files[-1]
-        return newest
+        for i in range(1, rows + 1):
+            if processed_tag_a < num_tags_a:  # processing links
+                link_and_data_for_check = []
+                dict_for_check = {}
+                a_xpath = '//*[@id="investments-table-object"]/tbody/tr[' + str(i) + ']/td[1]/a'
+                tag_a = browser_lib.find_element(a_xpath)
+                link = tag_a.get_attribute('href')
+                print(f'Found link: {link}')
+                uii_for_check = tag_a.text
+                investment_title = browser_lib.find_element('//*[@id="investments-table-object"]/tbody/tr[' + str(i) + ']/td[3]').text
+                dict_for_check['investment'] = investment_title
+                dict_for_check['uii'] = uii_for_check
+                link_and_data_for_check.append(link)
+                link_and_data_for_check.append(dict_for_check)
+                links_and_data_for_check_list.append(link_and_data_for_check)
+                processed_tag_a += 1
+        return links_and_data_for_check_list
     except Exception as e:
         print(e)
-    finally:
-        os.chdir('..')
 
 
-def wait_download_file(path: str = output_folder) -> str:
+def wait_download_file(path: str = tmp_output_folder) -> str:
     """
     Waiting for file to load
     :param path: path to the folder for download
@@ -209,57 +217,52 @@ def wait_download_file(path: str = output_folder) -> str:
     try:
         os.chdir(path)
         print("Waiting for downloads", end="")
-        num_files_start = len(os.listdir(os.getcwd()))
-        while len(os.listdir(os.getcwd())) == num_files_start:  # waiting for a new file in the folder
+        while len(os.listdir(os.getcwd())) == 0:  # waiting for a new file in the folder
             time.sleep(0.5)
             print(".", end="")
-
         file_end = "crdownload"
         while "crdownload" == file_end:  # waiting for the file to load completely
             time.sleep(0.5)
-            files = sorted(os.listdir(os.getcwd()), key=os.path.getmtime)
-            newest_file = files[-1]
+            newest_file = sorted(os.listdir(os.getcwd()), key=os.path.getmtime)[-1]
             print(".", end="")
             if "crdownload" in newest_file:
                 file_end = "crdownload"
             else:
                 file_end = "none"
         print("done!")
+        shutil.copy2(f"{tmp_output_folder}/{newest_file}", f"{output_folder}/{newest_file}")
+        os.remove(f'{tmp_output_folder}/{newest_file}')
+        os.chdir('..')
+        os.rmdir(tmp_output_folder)
         return newest_file
     except Exception as e:
         print(e)
-    finally:
-        os.chdir('..')
 
 
-def download_file(link: str, dict_for_check: dict) -> None:
+def download_file(link: str) -> str:
     """
     Download the file at the link
     :param link: link for download
     :param dict_for_check: data for compare from html-table
-    :return: None
+    :return: the name of the downloaded file
     """
-    if len(link) > 0:
-        try:
-            print('Starting to download the file.')
-            browser_lib.execute_javascript("window.open('');")
-            browser_lib_tabs = browser_lib.get_window_handles()
-            browser_lib.switch_window(browser_lib_tabs[1])
-            open_the_webpage(link)
-            download_xpath = '//*[@id="business-case-pdf"]/a'
-            wait_until_load_element(download_xpath)
-            browser_lib.click_element_if_visible(download_xpath)
-            # time.sleep(15)
-            # downloaded_file = latest_download_file()
-            downloaded_file = wait_download_file()
-            print(f'File {downloaded_file} downloaded successfully.')
-            data_from_downloaded_file = get_data_from_pdf_file(downloaded_file, 1)
-            compare_data(data_from_downloaded_file, dict_for_check)
-        except Exception as e:
-            print(e)
-        finally:
-            browser_lib.close_window()
-            browser_lib.switch_window(browser_lib_tabs[0])
+    try:
+        os.mkdir(tmp_output_folder)
+        print('Starting to download the file.')
+        browser_lib.execute_javascript("window.open('');")
+        browser_lib_tabs = browser_lib.get_window_handles()
+        browser_lib.switch_window(browser_lib_tabs[1])
+        open_the_webpage(link)
+        download_xpath = '//*[@id="business-case-pdf"]/a'
+        browser_lib.click_element_when_visible(download_xpath)
+        downloaded_file = wait_download_file()
+        print(f'File {downloaded_file} downloaded successfully.')
+        return downloaded_file
+    except Exception as e:
+        print(e)
+    finally:
+        browser_lib.close_window()
+        browser_lib.switch_window(browser_lib_tabs[0])
 
 
 def get_data_from_pdf_file(file: str, num_page: int, path=output_folder) -> Dict[str, Any]:
@@ -300,6 +303,7 @@ def get_data_from_pdf_file(file: str, num_page: int, path=output_folder) -> Dict
 def compare_data(data_1: dict, data_2: dict) -> bool:
     """
     Compare the downloaded file and data from the agency page
+    :rtype: Union[None, bool]
     :param data_1: data from download file
     :param data_2: data from site
     :return:

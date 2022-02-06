@@ -14,7 +14,6 @@ dependencies:
     # Define pip packages here.
     # https://pypi.org/
     - rpaframework==12.1.1 # https://rpaframework.org/releasenotes.html
-    - openpyxl==3.0.9
     - selenium==4.1.0
     - pandas==1.4.0
     - rpa==1.45.0
