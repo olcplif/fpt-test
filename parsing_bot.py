@@ -223,24 +223,18 @@ def get_data_from_pdf_file(file: str, num_page: int, path=output_folder) -> Dict
     :return: list of dictionary with some data from files
     """
     dict_for_check_from_pdf = {}
-
     try:
         print('Retrieving data from the downloaded file.')
         os.chdir(path)
         text = pdf.get_text_from_pdf(file, pages=num_page, trim=False)
-        lines_list = string.split_to_lines(text[num_page])
-        for i in range(len(lines_list)):
-            if "1. Name of this Investment:" in lines_list[i]:
-                line_1 = lines_list[i].split(": ")
-                line_2 = lines_list[i + 1].split(": ")
-
-                key_1 = line_1[0].replace("1. ", "")
-                value_1 = line_1[1]
-                dict_for_check_from_pdf[key_1] = value_1
-                key_2 = line_2[0].replace("2. ", "")
-                value_2 = line_2[1]
-                dict_for_check_from_pdf[key_2] = value_2
-                break
+        line_1 = string.get_lines_containing_string(text[num_page], '1. Name of this Investment:').split(': ')
+        line_2 = string.get_lines_containing_string(text[num_page], '2. Unique Investment Identifier (UII):').split(': ')
+        key_1 = line_1[0].replace("1. ", "")
+        value_1 = line_1[1]
+        dict_for_check_from_pdf[key_1] = value_1
+        key_2 = line_2[0].replace("2. ", "")
+        value_2 = line_2[1]
+        dict_for_check_from_pdf[key_2] = value_2
         print('Retrieving data from the downloaded file completed.')
         return dict_for_check_from_pdf
     except Exception as e:

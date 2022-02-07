@@ -16,4 +16,6 @@ temp/
 testrun/*
 .~lock*
 *.pkl
+*.pdf
+*.xlsx
 parsing_bot_old.py

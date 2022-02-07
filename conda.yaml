@@ -6,8 +6,8 @@ dependencies:
   # Define conda packages here.
   # If available, always prefer the conda version of a package, installation will be faster and more efficient.
   # https://anaconda.org/search
-  - python=3.7.5
-#  - python=3.8.10
+#  - python=3.7.5
+  - python=3.8.10
 
   - pip=20.1
   - pip:
